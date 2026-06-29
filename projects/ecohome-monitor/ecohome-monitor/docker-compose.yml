@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - PG_HOST=postgres
+      - PG_PORT=5432
+      - PG_USER=ecohome_user
+      - PG_PASSWORD=ecohome_password
+      - PG_DATABASE=ecohome_db
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=influx-token
+      - INFLUX_ORG=ecohome-org
+    depends_on:
+      - postgres
+      - influxdb
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=ecohome_user
+      - POSTGRES_PASSWORD=ecohome_password
+      - POSTGRES_DB=ecohome_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecohome_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    environment:
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_TOKEN=influx-token
+      - INFLUXDB_ORG_ID=ecohome-org
+    volumes:
+      - influx_data:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD", "influxd", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  influx_data:
