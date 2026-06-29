@@ -1,0 +1,47 @@
+/** User entity type definitions */
+import { z } from 'zod';
+
+/** Zod schema for user validation - ensures data integrity at boundaries */
+export const createUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  passwordHash: z.string().min(60, 'Password hash must be at least 60 characters'),
+  name: z.string().min(1, 'Name is required').max(100, 'Name must not exceed 100 characters'),
+});
+
+/** Zod schema for user update validation - partial updates */
+export const updateUserSchema = z.object({
+  email: z.string().email('Invalid email address').optional(),
+  passwordHash: z.string().min(60, 'Password hash must be at least 60 characters').optional(),
+  name: z.string().min(1, 'Name is required').max(100, 'Name must not exceed 100 characters').optional(),
+});
+
+/** User entity - represents a registered user in the system */
+export interface User {
+  id: string;
+  email: string;
+  passwordHash: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** User with additional data for API responses */
+export interface UserWithRelations extends User {
+  studySessions?: StudySession[];
+  subjects?: Subject[];
+}
+
+/** Create user input DTO - validated against createUserSchema */
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+/** Update user input DTO - validated against updateUserSchema */
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+/** User response DTO for API endpoints */
+export interface UserResponse {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
